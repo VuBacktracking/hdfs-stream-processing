@@ -1,0 +1,6 @@
+kafka
+pandas
+pyspark
+elasticsearch
+minio
+findspark
