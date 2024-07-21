@@ -4,3 +4,4 @@ pyspark
 elasticsearch
 minio
 findspark
+python-dotenv
