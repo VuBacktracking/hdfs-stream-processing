@@ -11,6 +11,7 @@
 * Utilize Apache Airflow for orchestrating the entire data pipeline workflow.
 
 ## System Architecture
+<img width="900" alt="architecture" src="https://github.com/user-attachments/assets/bc0013d0-1fd6-4e53-b225-d3a4a09c706f">
 
 ## Prequisites
 Before runing this script, ensure you have the following installed.\
