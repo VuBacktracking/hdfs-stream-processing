@@ -17,9 +17,11 @@ Before runing this script, ensure you have the following installed.\
 **Note**:  The project was set up on Ubuntu 22.04 OS.
 
 * Ubuntu 22.04 (prefered, but you can use Ubuntu 20.04)
-* Apache Hadoop (installed locally)
+* Apache Hadoop HDFS (installed locally)
 * Apache Spark (installed locally)
 * Apache Kafka (installed locally)
 * Apache Airflow
 * Docker
-* Minio, Elastic Search, Kibana 
+* Minio, Elastic Search, Kibana
+
+## Setup Environment
