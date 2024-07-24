@@ -1,0 +1,91 @@
+version: '3.8'
+services:
+  minio:
+    container_name: minio
+    image: "minio/minio"
+    volumes:
+      - minio:/data
+    ports:
+      - "9088:9088"
+    networks:
+      - my_docker
+    environment:
+      MINIO_ACCESS_KEY: "root"
+      MINIO_SECRET_KEY: "root12345"
+    command: server /data --console-address ":9088"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:9088/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  # es:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.9.0
+  #   container_name: elasticsearch
+  #   environment:
+  #     - node.name=es
+  #     - cluster.name=es-docker-single
+  #     - discovery.seed_hosts=es
+  #     - cluster.initial_master_nodes=es
+  #     - bootstrap.memory_lock=true
+  #     - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - data:/usr/share/elasticsearch/data
+  #   ports:
+  #     - 9200:9200
+  #   networks:
+  #     - elastic
+
+  # kib:
+  #   image: docker.elastic.co/kibana/kibana:7.9.0
+  #   depends_on:
+  #     - es
+  #   container_name: kibana
+  #   ports:
+  #     - 5601:5601
+  #   environment:
+  #     ELASTICSEARCH_URL: http://es:9200
+  #     ELASTICSEARCH_HOSTS: http://es:9200
+  #   networks:
+  #     - elastic
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.0
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:8.14.0
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200    # address of elasticsearch docker container which kibana will connect
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch                                   # kibana will start when elasticsearch has started
+volumes:
+  minio:
+  data:
+    driver: local
+networks:
+  my_docker:
+  elastic:
+    driver: bridge
