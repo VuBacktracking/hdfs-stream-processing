@@ -6,7 +6,7 @@ from pyspark.sql.functions import concat_ws
 import logging
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, filemode="w")
 logger = logging.getLogger(__name__)
 
 # Create a file handler
