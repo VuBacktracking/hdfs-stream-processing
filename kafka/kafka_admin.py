@@ -6,7 +6,8 @@ from kafka.errors import KafkaError
 logging.basicConfig(
     filename='kafka/kafka_topic_creation.log',  # Log file path
     level=logging.INFO,  # Set log level
-    format='%(asctime)s - %(levelname)s - %(message)s'  # Log message format
+    format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
+    filemode="w"
 )
 
 def create_new_topic(topic_name):
