@@ -143,11 +143,12 @@ def create_main_dataframe(separate_dataframes: dict):
 
         df = df.dropna()
 
-        df_main = df.withColumn("event_ts_min", F.from_unixtime(F.col("ts_min_bignt")).cast(DateType()))
-        df_main = df_main.withColumn("event_ts_min", F.date_format(F.col("event_ts_min"), "yyyy-MM-dd HH:mm:ss"))
+        # Convert ts_min_bignt to event_ts_min correctly
+        df = df.withColumn("event_ts_min", F.from_unixtime(F.col("ts_min_bignt")).cast("timestamp"))
+        df = df.withColumn("event_ts_min", F.date_format(F.col("event_ts_min"), "yyyy-MM-dd HH:mm:ss"))
 
         logger.info("Successfully created main dataframe.")
-        return df_main
+        return df
     except Exception as e:
         logger.error(f"Error in create_main_dataframe: {e}")
         return None
