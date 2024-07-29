@@ -2,3 +2,6 @@
 data/
 .env
 jars/
+*/__pycache__/
+*.log
+*/logs/
