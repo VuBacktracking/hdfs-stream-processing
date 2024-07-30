@@ -13,35 +13,29 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s:%(funcName)s:%(levelname)s:%(message)s')# One can see the logs to understand possible errors better. Log levels were determined due to method importance.
+                    format='%(asctime)s:%(funcName)s:%(levelname)s:%(message)s')
 
 warnings.filterwarnings('ignore')
-checkpointDir = "file:///tmp/streaming/minio_streaming" # Historical data is kept here. Can be deleted after each run for development purposes.
+checkpointDir = "file:///tmp/streaming/minio_streaming"
 
 
 def create_spark_session():
-    """
-    Creates the Spark Session with suitable configs.
-    """
     from pyspark.sql import SparkSession
     try:
-        # Spark session is established with kafka jar. Suitable versions can be found in Maven repository.
         spark = (SparkSession.builder
-                .appName("Streaming Kafka")
-                .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1")
-                .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
-                .getOrCreate())
+                 .appName("Streaming Kafka")
+                 .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.3")
+                 .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+                 .getOrCreate())
         logging.info('Spark session successfully created')
     except Exception as e:
-        traceback.print_exc(file=sys.stderr) # To see traceback of the error.
+        traceback.print_exc(file=sys.stderr)
         logging.error(f"Couldn't create the spark session due to exception: {e}")
 
     return spark
 
+
 def read_minio_credentials():
-    """
-    Gets the MinIO config files from local with configparser.
-    """
     import configparser
 
     config = configparser.RawConfigParser()
@@ -50,7 +44,7 @@ def read_minio_credentials():
         config.sections()
         accessKeyId = config.get('minio', 'aws_access_key_id')
         secretAccessKey = config.get('minio', 'aws_secret_access_key')
-        logging.info('MinIO credentials is obtained correctly')
+        logging.info('MinIO credentials obtained correctly')
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
         logging.error(f"MinIO credentials couldn't be obtained due to exception: {e}")
@@ -59,9 +53,6 @@ def read_minio_credentials():
 
 
 def load_minio_config(spark_context: SparkContext):
-    """
-    Establishes the necessary configurations to access to MinIO.
-    """
     accessKeyId, secretAccessKey = read_minio_credentials()
     try:
         spark_context._jsc.hadoopConfiguration().set("fs.s3a.access.key", accessKeyId)
@@ -70,24 +61,21 @@ def load_minio_config(spark_context: SparkContext):
         spark_context._jsc.hadoopConfiguration().set("fs.s3a.path.style.access", "true")
         spark_context._jsc.hadoopConfiguration().set("fs.s3a.connection.ssl.enabled", "true")
         spark_context._jsc.hadoopConfiguration().set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-        logging.info('MinIO configuration is created successfully')
+        logging.info('MinIO configuration created successfully')
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
-        logging.error(f"MinIO config could not be created successfully due to exception: {e}")
+        logging.error(f"MinIO config couldn't be created successfully due to exception: {e}")
 
 
 def create_initial_dataframe(spark_session):
-    """
-    Reads the streaming data and creates the initial dataframe accordingly.
-    """
     try:
-        # Gets the streaming data from topic office_input.
         df = (spark_session
-            .readStream
-            .format("kafka")
-            .option("kafka.bootstrap.servers", "localhost:9092")
-            .option("subscribe", "office_input")
-            .load())
+              .readStream
+              .format("kafka")
+              .option("kafka.bootstrap.servers", "localhost:9092")
+              .option("subscribe", "office_input")
+              .option("startingOffsets", "earliest")
+              .load())
         logging.info("Initial dataframe created successfully")
     except Exception as e:
         logging.warning(f"Initial dataframe couldn't be created due to exception: {e}")
@@ -96,28 +84,23 @@ def create_initial_dataframe(spark_session):
 
 
 def create_final_dataframe(df, spark_session):
-    """
-    Modifies the initial dataframe, and creates the final dataframe.
-    """
     from pyspark.sql.types import IntegerType, FloatType, StringType
     from pyspark.sql import functions as F
-    
-    # Decode the value from Kafka
+
     df2 = df.selectExpr("CAST(value AS STRING)")
 
     df3 = df2.withColumn("ts_min_bignt", F.split(F.col("value"), ",")[0].cast(IntegerType())) \
-            .withColumn("co2", F.split(F.col("value"), ",")[1].cast(FloatType())) \
-            .withColumn("humidity", F.split(F.col("value"), ",")[2].cast(FloatType())) \
-            .withColumn("light", F.split(F.col("value"), ",")[3].cast(FloatType())) \
-            .withColumn("pir", F.split(F.col("value"), ",")[4].cast(FloatType())) \
-            .withColumn("temperature", F.split(F.col("value"), ",")[5].cast(FloatType())) \
-            .withColumn("room", F.split(F.col("value"), ",")[6].cast(StringType())) \
-            .withColumn("event_ts_min", F.split(F.col("value"), ",")[7].cast(StringType())) \
-            .drop(F.col("value")) # Define data types of all columns.
+        .withColumn("co2", F.split(F.col("value"), ",")[1].cast(FloatType())) \
+        .withColumn("humidity", F.split(F.col("value"), ",")[2].cast(FloatType())) \
+        .withColumn("light", F.split(F.col("value"), ",")[3].cast(FloatType())) \
+        .withColumn("pir", F.split(F.col("value"), ",")[4].cast(FloatType())) \
+        .withColumn("temperature", F.split(F.col("value"), ",")[5].cast(FloatType())) \
+        .withColumn("room", F.split(F.col("value"), ",")[6].cast(StringType())) \
+        .withColumn("event_ts_min", F.split(F.col("value"), ",")[7].cast(StringType())) \
+        .drop(F.col("value"))
 
     df3.createOrReplaceTempView("df3")
 
-    # Below adds the if_movement column. This column shows the situation of the movement depending on the pir column.
     df4 = spark_session.sql("""
     select
         event_ts_min,
@@ -132,24 +115,20 @@ def create_final_dataframe(df, spark_session):
         else 'no_movement'
         end as if_movement
     from df3
-
     """)
     logging.info("Final dataframe created successfully")
     return df4
 
 
 def start_streaming(df):
-    """
-    Starts the streaming to index office_input in elasticsearch.
-    """
     logging.info("Streaming is being started...")
-    stream_query = (df.writeStream \
-                        .format("parquet") \
-                        .outputMode("append") \
-                        .option('header', 'true') \
-                        .option("checkpointLocation", checkpointDir) \
-                        .option("path", 's3a://datalake/office_input')  # The bucket my_bucket can be created via UI
-                        .start())
+    stream_query = (df.writeStream
+                    .format("parquet")
+                    .outputMode("append")
+                    .option('header', 'true')
+                    .option("checkpointLocation", checkpointDir)
+                    .option("path", 's3a://datalake/office_input')
+                    .start())
 
     return stream_query.awaitTermination()
 
@@ -158,5 +137,8 @@ if __name__ == '__main__':
     spark = create_spark_session()
     load_minio_config(spark.sparkContext)
     df = create_initial_dataframe(spark)
-    df_final = create_final_dataframe(df, spark)
-    start_streaming(df_final)
+    if df.isStreaming:
+        df_final = create_final_dataframe(df, spark)
+        start_streaming(df_final)
+    else:
+        logging.info("Kafka messages is stopped.")
