@@ -21,7 +21,7 @@ INPUT_DATA_PATH = 'hdfs://localhost:9000/user/stream_data/KETI/'
 FINAL_OUTPUT_PATH = 'hdfs://localhost:9000/user/stream_data/out/'
 
 
-findspark.init("/home/vuphan/spark-3.5.1")
+findspark.init("/home/vuphan/spark-3.4.3")
 # Initialize Spark
 spark = SparkSession.builder \
     .appName("Spark Read and Write") \
