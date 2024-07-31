@@ -87,9 +87,9 @@ def create_final_dataframe(df, spark_session):
     from pyspark.sql.types import IntegerType, FloatType, StringType
     from pyspark.sql import functions as F
 
-    df2 = df.selectExpr("CAST(value AS STRING)")
+    df1 = df.selectExpr("CAST(value AS STRING)")
 
-    df3 = df2.withColumn("ts_min_bignt", F.split(F.col("value"), ",")[0].cast(IntegerType())) \
+    df2 = df1.withColumn("ts_min_bignt", F.split(F.col("value"), ",")[0].cast(IntegerType())) \
         .withColumn("co2", F.split(F.col("value"), ",")[1].cast(FloatType())) \
         .withColumn("humidity", F.split(F.col("value"), ",")[2].cast(FloatType())) \
         .withColumn("light", F.split(F.col("value"), ",")[3].cast(FloatType())) \
@@ -99,9 +99,9 @@ def create_final_dataframe(df, spark_session):
         .withColumn("event_ts_min", F.split(F.col("value"), ",")[7].cast(StringType())) \
         .drop(F.col("value"))
 
-    df3.createOrReplaceTempView("df3")
+    df2.createOrReplaceTempView("df2")
 
-    df4 = spark_session.sql("""
+    df_main = spark_session.sql("""
     select
         event_ts_min,
         co2,
@@ -114,10 +114,10 @@ def create_final_dataframe(df, spark_session):
         when pir > 0 then 'movement'
         else 'no_movement'
         end as if_movement
-    from df3
+    from df2
     """)
     logging.info("Final dataframe created successfully")
-    return df4
+    return df_main
 
 
 def start_streaming(df):
