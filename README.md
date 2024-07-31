@@ -25,7 +25,8 @@ Before runing this script, ensure you have the following installed.\
 * Apache Kafka (installed locally)
 * Apache Airflow
 * Docker
-* Minio, Elastic Search, Kibana
+* Minio
+* Elasticsearch, Kibana
 
 ## Getting Started
 
