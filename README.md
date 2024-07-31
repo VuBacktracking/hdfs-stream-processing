@@ -12,7 +12,7 @@
 
 ## System Architecture
 <p align = "center">
-    <img src="assets/architecture.png" alt="workflow" width="70%">
+    <img src="assets/architecture.png" alt="workflow">
 </p>
 
 ## Prequisites
