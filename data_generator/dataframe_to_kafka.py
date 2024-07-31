@@ -21,7 +21,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 # Initialize Spark
-findspark.init("/home/vuphan/spark-3.5.1")
+findspark.init("/home/vuphan/spark-3.4.3")
 spark = SparkSession.builder \
     .appName("Dataframe to Kafka") \
     .master("local[8]") \
