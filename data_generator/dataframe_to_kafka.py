@@ -4,6 +4,12 @@ import time
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import concat_ws
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SPARK_HOME = os.getenv("SPARK_HOME")
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, filemode="w")
@@ -21,7 +27,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 # Initialize Spark
-findspark.init("/home/vuphan/spark-3.4.3")
+findspark.init(SPARK_HOME)
 spark = SparkSession.builder \
     .appName("Dataframe to Kafka") \
     .master("local[8]") \
