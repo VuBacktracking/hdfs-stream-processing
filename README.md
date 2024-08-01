@@ -47,7 +47,7 @@ $ docker compose -f storage-docker-compose.yaml up -d
 
 3. **Setup environment**
 ```
-$ python3 venv -m .venv
+$ python3 -m venv .venv
 $ pip install -r requirements.txt
 ```
 
