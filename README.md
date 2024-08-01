@@ -51,6 +51,13 @@ $ python3 venv -m .venv
 $ pip install -r requirements.txt
 ```
 
+Create `.env` file and paste your HADOOP_HOME, SPARK_HOME, KAFKA_HOME in it.
+```
+HADOOP_HOME=""
+SPARK_HOME=""
+KAFKA_HOME=""
+```
+
 4. **Services**
 
     * Elasticsearch -> `localhost:5601`
