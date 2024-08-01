@@ -7,6 +7,7 @@ from pyspark.sql.types import DateType
 from pyspark.sql.utils import AnalysisException
 from dotenv import load_dotenv
 import logging
+import os
 
 # Load environment variables
 load_dotenv()
@@ -17,11 +18,11 @@ logging.basicConfig(level=logging.INFO, filename='utils/data_processing.log', fi
 logger = logging.getLogger(__name__)
 
 # Configuration
+SPARK_HOME=os.getenv("SPARK_HOME")
 INPUT_DATA_PATH = 'hdfs://localhost:9000/user/stream_data/KETI/'
 FINAL_OUTPUT_PATH = 'hdfs://localhost:9000/user/stream_data/out/'
 
-
-findspark.init("/home/vuphan/spark-3.4.3")
+findspark.init(SPARK_HOME)
 # Initialize Spark
 spark = SparkSession.builder \
     .appName("Spark Read and Write") \
